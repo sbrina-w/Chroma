@@ -26,10 +26,12 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
+// method for picking image from device gallery
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+    // successful image upload
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -91,7 +93,7 @@ class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
 
-  // Include the 'key' parameter in the constructor
+  // widget identification
   CustomButton({Key? key, required this.text, this.onPressed}) : super(key: key);
 
   @override
