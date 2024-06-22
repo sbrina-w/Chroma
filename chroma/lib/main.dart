@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'analyzer.dart'; // Import the new page
+import 'analyzer.dart';
+import 'take_photo.dart';
 
 void main() {
   runApp(ChromaApp());
@@ -73,7 +74,12 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
               const SizedBox(height: 50),
-              CustomButton(text: 'Take a Photo'),
+              CustomButton(text: 'Take a Photo', onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TakePhotoPage()),
+                );
+              }),
               CustomButton(
                 text: 'Upload a Photo',
                 onPressed: _pickImage,
