@@ -106,8 +106,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
               showLabel: true,
               paletteType: PaletteType.hsv,
               pickerAreaBorderRadius: const BorderRadius.only(
-                topLeft: const Radius.circular(2.0),
-                topRight: const Radius.circular(2.0),
+                topLeft: Radius.circular(2.0),
+                topRight: Radius.circular(2.0),
               ),
             ),
           ),
@@ -118,6 +118,60 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors[index] = pickedColor;
+                });
+              },
+            ),
+            ElevatedButton(
+              child: Text('Delete'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _paletteColors.removeAt(index);
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _addNewColor() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Color pickedColor = Colors.white;
+        return AlertDialog(
+          title: const Text('Select New Color'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickedColor,
+              onColorChanged: (Color color) {
+                pickedColor = color;
+              },
+              colorPickerWidth: 300.0,
+              pickerAreaHeightPercent: 0.7,
+              enableAlpha: true,
+              displayThumbColor: true,
+              showLabel: true,
+              paletteType: PaletteType.hsv,
+              pickerAreaBorderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(2.0),
+                topRight: Radius.circular(2.0),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _paletteColors.add(pickedColor);
                 });
               },
             ),
@@ -133,18 +187,20 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
       appBar: AppBar(
         title: Text('Uploaded Photo'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            widget.imagePath.isNotEmpty
-                ? Image.file(File(widget.imagePath))
-                : Text('No image selected.'),
-            const SizedBox(height: 20),
-            Text('Prominent Colors:'),
-            const SizedBox(height: 10),
-            _buildPalette(),
-          ],
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              widget.imagePath.isNotEmpty
+                  ? Image.file(File(widget.imagePath))
+                  : Text('No image selected.'),
+              const SizedBox(height: 20),
+              Text('Prominent Colors:'),
+              const SizedBox(height: 10),
+              _buildPalette(),
+            ],
+          ),
         ),
       ),
     );
@@ -156,16 +212,31 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
             alignment: WrapAlignment.center,
             spacing: 8.0,
             runSpacing: 8.0,
-            children: List.generate(_paletteColors.length, (index) {
-              return GestureDetector(
-                onTap: () => _changeColor(index),
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  color: _paletteColors[index],
-                  margin: EdgeInsets.symmetric(horizontal: 4),
-                ),
-              );
+            children: List.generate(_paletteColors.length + 1, (index) {
+              if (index < _paletteColors.length) {
+                return GestureDetector(
+                  onTap: () => _changeColor(index),
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    color: _paletteColors[index],
+                    margin: EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                );
+              } else {
+                return GestureDetector(
+                  onTap: _addNewColor,
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Icon(Icons.add, color: Colors.black),
+                    ),
+                    margin: EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                );
+              }
             }),
           )
         : CircularProgressIndicator();
