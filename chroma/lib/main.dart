@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'analyzer.dart';
 import 'take_photo.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(ChromaApp());
@@ -31,13 +33,74 @@ class _LandingPageState extends State<LandingPage> {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-    // successful image upload
+      // successful image upload
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => AnalyzerPage(imagePath: image.path),
         ),
       );
+    }
+  }
+
+  //send uploaded image to backend
+  Future<void> _uploadImage(String imagePath) async {
+    final uri =
+        Uri.parse('http://54.84.5.214/upload');
+    final request = http.MultipartRequest('POST', uri)
+      ..files.add(await http.MultipartFile.fromPath('file', imagePath));
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responseData = await response.stream.bytesToString();
+      final data = json.decode(responseData);
+      final List<String> colors = List<String>.from(data['colors']);
+      _showColorPalette(colors);
+    } else {
+      print('Failed to upload image. Status code: ${response.statusCode}');
+    }
+  }
+
+  //display the extracted color palette, add cap later
+  void _showColorPalette(List<String> colors) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Extracted Colors"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: colors.map((color) {
+              return Container(
+                width: 100,
+                height: 100,
+                color: Color(
+                    int.parse(color.substring(1), radix: 16) + 0xFF000000),
+                margin: const EdgeInsets.all(4.0),
+              );
+            }).toList(),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Method to pick an image from the gallery and upload it to the backend
+  Future<void> _pickAndUploadImage() async {
+    // <-- Change 2
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      await _uploadImage(image.path);
     }
   }
 
@@ -75,17 +138,23 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
               const SizedBox(height: 50),
-              CustomButton(text: 'Take a Photo', onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TakePhotoPage()),
-                );
-              }),
+              CustomButton(
+                  text: 'Take a Photo',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const TakePhotoPage()),
+                    );
+                  }),
               CustomButton(
                 text: 'Upload a Photo',
                 onPressed: _pickImage,
               ),
-              CustomButton(text: 'Customize Palette'),
+              CustomButton(
+                text: 'Customize Palette',
+                onPressed: _pickAndUploadImage,
+              ),
             ],
           ),
         ),
@@ -99,7 +168,8 @@ class CustomButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   // widget identification
-  CustomButton({Key? key, required this.text, this.onPressed}) : super(key: key);
+  const CustomButton({Key? key, required this.text, this.onPressed})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
