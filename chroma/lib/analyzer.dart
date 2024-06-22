@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class AnalyzerPage extends StatefulWidget {
   final String imagePath;
@@ -29,7 +30,6 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
       maximumColorCount: 30,
     );
 
-    // selecting up to 10 distinct colours
     List<Color> filteredColors = _filterColors(paletteGenerator);
 
     setState(() {
@@ -40,25 +40,22 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
   List<Color> _filterColors(PaletteGenerator paletteGenerator) {
     List<Color> colors = [];
 
-    // sorting colours by saturation and luminance
     List<Color> sortedColors = paletteGenerator.colors.toList()
       ..sort((a, b) {
         double aSaturation = _colorSaturation(a);
         double bSaturation = _colorSaturation(b);
         if (aSaturation != bSaturation) {
-          return bSaturation.compareTo(aSaturation); // Sort by saturation descending
+          return bSaturation.compareTo(aSaturation);
         } else {
-          return _colorLuminance(b).compareTo(_colorLuminance(a)); // Sort by luminance ascending
+          return _colorLuminance(b).compareTo(_colorLuminance(a));
         }
       });
 
-    // Select up to 10 distinct colors
     for (Color color in sortedColors) {
-      if (colors.length >= 10) break; // Limit the palette size to 10 colors
+      if (colors.length >= 10) break;
 
       bool shouldAdd = true;
       for (Color addedColor in colors) {
-        // Adjust similarity threshold as per your requirement
         if (_colorSimilarity(color, addedColor) < 30) {
           shouldAdd = false;
           break;
@@ -80,13 +77,54 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
     return color.computeLuminance();
   }
 
-  // calculating colour similarity
   double _colorSimilarity(Color color1, Color color2) {
-    // using rgb difference
     int rDiff = (color1.red - color2.red).abs();
     int gDiff = (color1.green - color2.green).abs();
     int bDiff = (color1.blue - color2.blue).abs();
-    return (rDiff + gDiff + bDiff) / 3.0; // average difference
+    return (rDiff + gDiff + bDiff) / 3.0;
+  }
+
+  void _changeColor(int index) {
+    Color currentColor = _paletteColors[index];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Color pickedColor = currentColor;
+        return AlertDialog(
+          title: const Text('Select Color'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: currentColor,
+              onColorChanged: (Color color) {
+                pickedColor = color;
+              },
+              colorPickerWidth: 300.0,
+              pickerAreaHeightPercent: 0.7,
+              enableAlpha: true,
+              displayThumbColor: true,
+              showLabel: true,
+              paletteType: PaletteType.hsv,
+              pickerAreaBorderRadius: const BorderRadius.only(
+                topLeft: const Radius.circular(2.0),
+                topRight: const Radius.circular(2.0),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _paletteColors[index] = pickedColor;
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -118,14 +156,17 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
             alignment: WrapAlignment.center,
             spacing: 8.0,
             runSpacing: 8.0,
-            children: _paletteColors
-                .map((color) => Container(
-                      width: 50,
-                      height: 50,
-                      color: color,
-                      margin: EdgeInsets.symmetric(horizontal: 4),
-                    ))
-                .toList(),
+            children: List.generate(_paletteColors.length, (index) {
+              return GestureDetector(
+                onTap: () => _changeColor(index),
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  color: _paletteColors[index],
+                  margin: EdgeInsets.symmetric(horizontal: 4),
+                ),
+              );
+            }),
           )
         : CircularProgressIndicator();
   }
