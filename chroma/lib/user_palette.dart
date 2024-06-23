@@ -71,7 +71,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
       final data = json.decode(responseData);
       final List<String> colors = List<String>.from(data['colors']);
       if (colors.length > 30) {
-        _showErrorMessage('Could not extract colors. Please try another image.');
+        _showErrorMessage('Could not extract colors. Please try another image.\nYour image may have too many colours. Please make sure each colour swatch is isolated and taken in good lighting.', tipMessage: 'Tip: Run your swatch image through remove.bg first then upload into Chroma.',);
       } else {
         _showColorPalette(colors);
       }
@@ -100,7 +100,10 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 child: Container(
                   width: 50,
                   height: 50,
-                  color: color,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color,
+                  ),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                 ),
               );
@@ -129,12 +132,49 @@ class _UserPalettePageState extends State<UserPalettePage> {
     );
   }
 
-  void _showErrorMessage(String message) {
+  void _showErrorMessage(String message, {String? tipMessage}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Error'),
+        title: Text('Error'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(message),
+            if (tipMessage != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                tipMessage,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ],
+        ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showInfoMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Info'),
           content: Text(message),
           actions: <Widget>[
             ElevatedButton(
@@ -241,7 +281,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
               },
             ),
             ElevatedButton(
-              child: Text('Add to Palette'),
+              child: Text('Add to Colour Palette'),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -305,7 +345,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          title: Text('Your Palette'),
+          title: Text('Your Colour Palette'),
         ),
         body: Container(
           decoration: const BoxDecoration(
@@ -325,7 +365,18 @@ class _UserPalettePageState extends State<UserPalettePage> {
                   onPressed: _pickAndUploadImage,
                 ),
                 const SizedBox(height: 20),
-                Text('Your Palette:'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Your Colour Palette:'),
+                    IconButton(
+                      icon: const Icon(Icons.info_outline),
+                      onPressed: () {
+                        _showInfoMessage('Customize your colour palette by uploading a picture of colour swatches. For optimal results, ensure each color swatch is clearly isolated and taken in good lighting. Fine tune results by tapping on the extracted colour or click the "+" to add new colours.' );
+                      },
+                    ),
+                  ] 
+                ),
                 const SizedBox(height: 10),
                 _buildPalette(),
               ],
@@ -350,7 +401,10 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 child: Container(
                   width: 50,
                   height: 50,
-                  color: _paletteColors[index],
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _paletteColors[index],
+                  ),
                   margin: EdgeInsets.symmetric(horizontal: 4),
                 ),
               );
@@ -360,7 +414,10 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 child: Container(
                   width: 50,
                   height: 50,
-                  color: Colors.grey[300],
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey[300],
+                  ),
                   child: Center(
                     child: Icon(Icons.add, color: Colors.black),
                   ),
@@ -401,23 +458,25 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 50.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6772AB),
-          minimumSize: const Size(300, 50),
+          minimumSize: const Size(200, 50),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(50),
           ),
         ),
         onPressed: onPressed,
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 16,
+          child: Text(
+            text,
+            style: const TextStyle(
+            fontSize: 14,
             color: Colors.white,
-            fontFamily: 'Roboto',
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w200,
           ),
         ),
       ),
