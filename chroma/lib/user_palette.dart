@@ -45,7 +45,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
       ),
     );
 
-    Navigator.pop(context);
+    Navigator.pop(context, _paletteColors);
   }
 
   Future<void> _pickAndUploadImage() async {

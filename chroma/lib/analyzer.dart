@@ -28,6 +28,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
     _loadPaletteColors();
   }
 
+
   Future<void> _extractPalette() async {
     final File imageFile = File(widget.imagePath);
 
@@ -267,9 +268,9 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
 
   Widget _buildUserPalette() {
     return _userPaletteColors.isNotEmpty
-        ? SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+        ? Wrap (
+          spacing: 8.0, 
+          runSpacing: 8.0,
               children: List.generate(_userPaletteColors.length, (index) {
                 return Column(
                   children: [
@@ -290,8 +291,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
                   ],
                 );
               }),
-            ),
-          )
+            )
+          
         : Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -306,13 +307,17 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
+                onPressed: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => UserPalettePage(),
                     ),
                   );
+                   if (result != null) {
+                  _loadPaletteColors();
+                  _buildUserPalette();
+                  }
                 },
                 child: Text('Add Color Palette'),
               ),
