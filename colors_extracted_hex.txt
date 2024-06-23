@@ -1,7 +1,0 @@
-Extracted colors in hexadecimal format:
-Color 1: #C7AB35
-Color 2: #C85083
-Color 3: #AF6A3C
-Color 4: #498D56
-Color 5: #1791BE
-Color 6: #AA96BB
