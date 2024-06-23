@@ -12,6 +12,8 @@ class UserPalettePage extends StatefulWidget {
 
 class _UserPalettePageState extends State<UserPalettePage> {
   List<Color> _paletteColors = [];
+  bool _unsavedChanges = false;
+  final GlobalKey<ScaffoldMessengerState> _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -33,6 +35,17 @@ class _UserPalettePageState extends State<UserPalettePage> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final List<String> colorStrings = _paletteColors.map((color) => color.value.toString()).toList();
     await prefs.setStringList('paletteColors', colorStrings);
+    _unsavedChanges = false;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Changes Saved Successfully'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    Navigator.pop(context);
   }
 
   Future<void> _pickAndUploadImage() async {
@@ -43,7 +56,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
       await _uploadImage(image.path);
     } else {
       print('No image selected');
-    }
+    } 
   }
 
   Future<void> _uploadImage(String imagePath) async {
@@ -106,7 +119,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors.addAll(parsedColors);
-                  _savePalette();
+                  _unsavedChanges = true;
                 });
               },
             ),
@@ -170,7 +183,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors[index] = pickedColor;
-                  _savePalette();
+                  _unsavedChanges = true;
                 });
               },
             ),
@@ -180,7 +193,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors.removeAt(index);
-                  _savePalette();
+                  _unsavedChanges = true;
                 });
               },
               style: ElevatedButton.styleFrom(
@@ -233,7 +246,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors.add(pickedColor);
-                  _savePalette();
+                  _unsavedChanges = true;
                 });
               },
             ),
@@ -243,34 +256,80 @@ class _UserPalettePageState extends State<UserPalettePage> {
     );
   }
 
+  void _clearPalette() {
+    setState(() {
+      _paletteColors.clear();
+      _unsavedChanges = true;
+    });
+  }
+
+  void _onBackPressed() {
+    if (_unsavedChanges) {
+      // dialog for unsaved changes
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Discard Changes?'),
+            content: Text('Are you sure you want to discard your changes?'),
+            actions: <Widget>[
+              ElevatedButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              ElevatedButton(
+                child: Text('Discard'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // go back twice to exit
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Your Palette'),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEEDDF5), Color(0xFFF1EDEB)],
-          ),
+    return WillPopScope(
+      onWillPop: () async {
+        _onBackPressed();
+        return false; // prevent default back navigation
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          title: Text('Your Palette'),
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const SizedBox(height: 50),
-              CustomButton(
-                text: 'Upload Swatches',
-                onPressed: _pickAndUploadImage,
-              ),
-              const SizedBox(height: 20),
-              Text('Your Palette:'),
-              const SizedBox(height: 10),
-              _buildPalette(),
-            ],
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFEEDDF5), Color(0xFFF1EDEB)],
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const SizedBox(height: 50),
+                CustomButton(
+                  text: 'Upload Swatches',
+                  onPressed: _pickAndUploadImage,
+                ),
+                const SizedBox(height: 20),
+                Text('Your Palette:'),
+                const SizedBox(height: 10),
+                _buildPalette(),
+              ],
+            ),
           ),
         ),
       ),
@@ -278,36 +337,57 @@ class _UserPalettePageState extends State<UserPalettePage> {
   }
 
   Widget _buildPalette() {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 8.0,
-      runSpacing: 8.0,
-      children: List.generate(_paletteColors.length + 1, (index) {
-        if (index < _paletteColors.length) {
-          return GestureDetector(
-            onTap: () => _changeColor(index),
-            child: Container(
-              width: 50,
-              height: 50,
-              color: _paletteColors[index],
-              margin: EdgeInsets.symmetric(horizontal: 4),
+    return Column(
+      children: [
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: List.generate(_paletteColors.length + 1, (index) {
+            if (index < _paletteColors.length) {
+              return GestureDetector(
+                onTap: () => _changeColor(index),
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  color: _paletteColors[index],
+                  margin: EdgeInsets.symmetric(horizontal: 4),
+                ),
+              );
+            } else {
+              return GestureDetector(
+                onTap: _addNewColor,
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  color: Colors.grey[300],
+                  child: Center(
+                    child: Icon(Icons.add, color: Colors.black),
+                  ),
+                  margin: EdgeInsets.symmetric(horizontal: 4),
+                ),
+              );
+            }
+          }),
+        ),
+        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: _clearPalette,
+              child: Text('Clear Palette'),
             ),
-          );
-        } else {
-          return GestureDetector(
-            onTap: _addNewColor,
-            child: Container(
-              width: 50,
-              height: 50,
-              color: Colors.grey[300],
-              child: Center(
-                child: Icon(Icons.add, color: Colors.black),
-              ),
-              margin: EdgeInsets.symmetric(horizontal: 4),
+            SizedBox(width: 20),
+            ElevatedButton(
+              onPressed: () {
+                _savePalette();
+              },
+              child: Text('Save'),
             ),
-          );
-        }
-      }),
+          ],
+        ),
+      ],
     );
   }
 }

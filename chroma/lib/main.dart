@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'analyzer.dart';
 import 'take_photo.dart';
-import 'dart:convert';
 import 'user_palette.dart';
-import 'package:http/http.dart' as http;
 
 void main() {
   runApp(ChromaApp());
