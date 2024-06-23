@@ -6,6 +6,8 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPalettePage extends StatefulWidget {
+  const UserPalettePage({super.key});
+
   @override
   _UserPalettePageState createState() => _UserPalettePageState();
 }
@@ -13,7 +15,8 @@ class UserPalettePage extends StatefulWidget {
 class _UserPalettePageState extends State<UserPalettePage> {
   List<Color> _paletteColors = [];
   bool _unsavedChanges = false;
-  final GlobalKey<ScaffoldMessengerState> _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
+  final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -26,19 +29,21 @@ class _UserPalettePageState extends State<UserPalettePage> {
     final List<String>? colorStrings = prefs.getStringList('paletteColors');
     if (colorStrings != null) {
       setState(() {
-        _paletteColors = colorStrings.map((color) => Color(int.parse(color))).toList();
+        _paletteColors =
+            colorStrings.map((color) => Color(int.parse(color))).toList();
       });
     }
   }
 
   Future<void> _savePalette() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final List<String> colorStrings = _paletteColors.map((color) => color.value.toString()).toList();
+    final List<String> colorStrings =
+        _paletteColors.map((color) => color.value.toString()).toList();
     await prefs.setStringList('paletteColors', colorStrings);
     _unsavedChanges = false;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('Changes Saved Successfully'),
         duration: Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
@@ -56,7 +61,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
       await _uploadImage(image.path);
     } else {
       print('No image selected');
-    } 
+    }
   }
 
   Future<void> _uploadImage(String imagePath) async {
@@ -71,12 +76,17 @@ class _UserPalettePageState extends State<UserPalettePage> {
       final data = json.decode(responseData);
       final List<String> colors = List<String>.from(data['colors']);
       if (colors.length > 30) {
-        _showErrorMessage('Could not extract colors. Please try another image.\nYour image may have too many colours. Please make sure each colour swatch is isolated and taken in good lighting.', tipMessage: 'Tip: Run your swatch image through remove.bg first then upload into Chroma.',);
+        _showErrorMessage(
+          'Could not extract colors. Please try another image.\nYour image may have too many colours. Please make sure each colour swatch is isolated and taken in good lighting.',
+          tipMessage:
+              'Tip: Run your swatch image through remove.bg first then upload into Chroma.',
+        );
       } else {
         _showColorPalette(colors);
       }
     } else {
-      _showErrorMessage('Failed to upload image. Status code: ${response.statusCode}');
+      _showErrorMessage(
+          'Failed to upload image. Status code: ${response.statusCode}');
     }
   }
 
@@ -95,8 +105,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
             runSpacing: 8.0,
             children: parsedColors.map((color) {
               return GestureDetector(
-                onTap: () {
-                },
+                onTap: () {},
                 child: Container(
                   width: 50,
                   height: 50,
@@ -111,13 +120,13 @@ class _UserPalettePageState extends State<UserPalettePage> {
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             ElevatedButton(
-              child: Text('Add to Palette'),
+              child: const Text('Add to Palette'),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -137,28 +146,28 @@ class _UserPalettePageState extends State<UserPalettePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-        title: Text('Error'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(message),
-            if (tipMessage != null) ...[
-              const SizedBox(height: 10),
-              Text(
-                tipMessage,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey[600],
+          title: const Text('Error'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(message),
+              if (tipMessage != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  tipMessage,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey[600],
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
-        ),
+          ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -174,11 +183,11 @@ class _UserPalettePageState extends State<UserPalettePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Info'),
+          title: const Text('Info'),
           content: Text(message),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -218,7 +227,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -228,7 +237,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
               },
             ),
             ElevatedButton(
-              child: Text('Delete'),
+              child: const Text('Delete'),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -275,13 +284,13 @@ class _UserPalettePageState extends State<UserPalettePage> {
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             ElevatedButton(
-              child: Text('Add to Colour Palette'),
+              child: const Text('Add to Colour Palette'),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -310,17 +319,18 @@ class _UserPalettePageState extends State<UserPalettePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Discard Changes?'),
-            content: Text('Are you sure you want to discard your changes?'),
+            title: const Text('Discard Changes?'),
+            content:
+                const Text('Are you sure you want to discard your changes?'),
             actions: <Widget>[
               ElevatedButton(
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
               ElevatedButton(
-                child: Text('Discard'),
+                child: const Text('Discard'),
                 onPressed: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).pop(); // go back twice to exit
@@ -345,7 +355,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          title: Text('Your Colour Palette'),
+          title: const Text('Your Colour Palette'),
         ),
         body: Container(
           decoration: const BoxDecoration(
@@ -365,18 +375,16 @@ class _UserPalettePageState extends State<UserPalettePage> {
                   onPressed: _pickAndUploadImage,
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Your Colour Palette:'),
-                    IconButton(
-                      icon: const Icon(Icons.info_outline),
-                      onPressed: () {
-                        _showInfoMessage('Customize your colour palette by uploading a picture of colour swatches. For optimal results, ensure each color swatch is clearly isolated and taken in good lighting. Fine tune results by tapping on the extracted colour or click the "+" to add new colours.' );
-                      },
-                    ),
-                  ] 
-                ),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Text('Your Colour Palette:'),
+                  IconButton(
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () {
+                      _showInfoMessage(
+                          'Customize your colour palette by uploading a picture of colour swatches. For optimal results, ensure each color swatch is clearly isolated and taken in good lighting. Fine tune results by tapping on the extracted colour or click the "+" to add new colours.');
+                    },
+                  ),
+                ]),
                 const SizedBox(height: 10),
                 _buildPalette(),
               ],
@@ -405,7 +413,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                     shape: BoxShape.circle,
                     color: _paletteColors[index],
                   ),
-                  margin: EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
                 ),
               );
             } else {
@@ -418,29 +426,29 @@ class _UserPalettePageState extends State<UserPalettePage> {
                     shape: BoxShape.circle,
                     color: Colors.grey[300],
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Icon(Icons.add, color: Colors.black),
                   ),
-                  margin: EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
                 ),
               );
             }
           }),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
               onPressed: _clearPalette,
-              child: Text('Clear Palette'),
+              child: const Text('Clear Palette'),
             ),
-            SizedBox(width: 20),
+            const SizedBox(width: 20),
             ElevatedButton(
               onPressed: () {
                 _savePalette();
               },
-              child: Text('Save'),
+              child: const Text('Save'),
             ),
           ],
         ),
@@ -453,8 +461,7 @@ class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
 
-  const CustomButton({Key? key, required this.text, this.onPressed})
-      : super(key: key);
+  const CustomButton({super.key, required this.text, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -470,9 +477,9 @@ class CustomButton extends StatelessWidget {
           ),
         ),
         onPressed: onPressed,
-          child: Text(
-            text,
-            style: const TextStyle(
+        child: Text(
+          text,
+          style: const TextStyle(
             fontSize: 14,
             color: Colors.white,
             fontFamily: 'Poppins',

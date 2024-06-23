@@ -15,11 +15,12 @@ class ChromaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Chroma',
       theme: ThemeData(
         primaryColor: const Color(0xFF6772AB),
-        appBarTheme: AppBarTheme(
-          backgroundColor: const Color(0xFF6772AB),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF6772AB),
           titleTextStyle: TextStyle(
             color: Colors.white,
             fontFamily: 'Poppins',
@@ -28,10 +29,10 @@ class ChromaApp extends StatelessWidget {
           iconTheme: IconThemeData(color: Colors.white),
         ),
         textTheme: Theme.of(context).textTheme.apply(
-          fontFamily: 'Poppins',
-          bodyColor: const Color(0xFF6772AB),
-          displayColor: const Color(0xFF6772AB),
-        ),
+              fontFamily: 'Poppins',
+              bodyColor: const Color(0xFF6772AB),
+              displayColor: const Color(0xFF6772AB),
+            ),
       ),
       home: const LandingPage(),
     );
@@ -58,9 +59,9 @@ class _LandingPageState extends State<LandingPage> {
       const Color(0xFFE6D2DD),
       const Color(0xFFEFE9D3),
       const Color(0xFF7983B8),
-      Color.fromARGB(255, 130, 161, 196),
+      const Color.fromARGB(255, 130, 161, 196),
       const Color(0xFFD2BBE2),
-      Color.fromARGB(255, 204, 163, 186),
+      const Color.fromARGB(255, 204, 163, 186),
     ];
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
@@ -99,7 +100,10 @@ class _LandingPageState extends State<LandingPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [colors[currentColorIndex], colors[(currentColorIndex + 1) % colors.length]],
+            colors: [
+              colors[currentColorIndex],
+              colors[(currentColorIndex + 1) % colors.length]
+            ],
           ),
         ),
         child: Center(
@@ -162,7 +166,7 @@ class _LandingPageState extends State<LandingPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const TakePhotoPage()),
+                        builder: (context) => const TakePhotoPage()),
                   );
                 },
               ),
@@ -201,7 +205,7 @@ class CustomButton extends StatelessWidget {
         ),
         onPressed: onPressed,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.start, // Align icon and text to start
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             const SizedBox(width: 15),
             Icon(
