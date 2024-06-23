@@ -79,7 +79,7 @@ class _LandingPageState extends State<LandingPage> {
               ),
               const SizedBox(height: 50),
               CustomButton(
-                  text: 'Take a Photo',
+                  text: 'Take a Reference Photo',
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -88,11 +88,11 @@ class _LandingPageState extends State<LandingPage> {
                     );
                   }),
               CustomButton(
-                text: 'Upload a Photo',
+                text: 'Upload a Reference Photo',
                 onPressed: _pickImage,
               ),
               CustomButton(
-                text: 'Customize Palette',
+                text: 'Add Your Colours',
                 onPressed: () {
                     Navigator.push(
                         context,

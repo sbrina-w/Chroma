@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'user_palette.dart';
 
 class AnalyzerPage extends StatefulWidget {
   final String imagePath;
@@ -14,11 +16,13 @@ class AnalyzerPage extends StatefulWidget {
 
 class _AnalyzerPageState extends State<AnalyzerPage> {
   List<Color> _paletteColors = [];
+  List<Color> _userPaletteColors = [];
 
   @override
   void initState() {
     super.initState();
     _extractPalette();
+    _loadPaletteColors();
   }
 
   Future<void> _extractPalette() async {
@@ -36,6 +40,16 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
       _paletteColors = filteredColors;
     });
   }
+
+  Future<void> _loadPaletteColors() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final List<String>? colorStrings = prefs.getStringList('paletteColors');
+  if (colorStrings != null) {
+    setState(() {
+      _userPaletteColors = colorStrings.map((color) => Color(int.parse(color))).toList();
+    });
+  }
+}
 
   List<Color> _filterColors(PaletteGenerator paletteGenerator) {
     List<Color> colors = [];
@@ -185,7 +199,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Uploaded Photo'),
+        title: Text('Calculate Colour Mix'),
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -199,6 +213,11 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
               Text('Prominent Colors:'),
               const SizedBox(height: 10),
               _buildPalette(),
+              const SizedBox(height: 40),
+              Text('Your Color Palette:'),
+              const SizedBox(height: 10),
+              _buildUserPalette(),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -240,5 +259,48 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
             }),
           )
         : CircularProgressIndicator();
+  }
+
+  Widget _buildUserPalette() {
+  return _userPaletteColors.isNotEmpty
+      ? SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: _userPaletteColors.map((color) {
+              return Container(
+                width: 50,
+                height: 50,
+                color: color,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+              );
+            }).toList(),
+          ),
+        )
+      : Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+              child: Text(
+                'You have not added any palettes yet',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserPalettePage(),
+                  ),
+                );
+              },
+              child: Text('Add Color Palette'),
+            ),
+          ],
+        );
   }
 }

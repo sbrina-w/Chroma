@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPalettePage extends StatefulWidget {
   @override
@@ -12,16 +13,39 @@ class UserPalettePage extends StatefulWidget {
 class _UserPalettePageState extends State<UserPalettePage> {
   List<Color> _paletteColors = [];
 
-  // pick an image from the gallery and upload it to the backend
+  @override
+  void initState() {
+    super.initState();
+    _loadPalette();
+  }
+
+  Future<void> _loadPalette() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String>? colorStrings = prefs.getStringList('paletteColors');
+    if (colorStrings != null) {
+      setState(() {
+        _paletteColors = colorStrings.map((color) => Color(int.parse(color))).toList();
+      });
+    }
+  }
+
+  Future<void> _savePalette() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String> colorStrings = _paletteColors.map((color) => color.value.toString()).toList();
+    await prefs.setStringList('paletteColors', colorStrings);
+  }
+
   Future<void> _pickAndUploadImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      print('Image picked: ${image.path}');
       await _uploadImage(image.path);
+    } else {
+      print('No image selected');
     }
   }
 
-  //send uploaded image to backend
   Future<void> _uploadImage(String imagePath) async {
     final uri = Uri.parse('http://54.84.5.214/upload');
     final request = http.MultipartRequest('POST', uri)
@@ -33,13 +57,16 @@ class _UserPalettePageState extends State<UserPalettePage> {
       final responseData = await response.stream.bytesToString();
       final data = json.decode(responseData);
       final List<String> colors = List<String>.from(data['colors']);
-      _showColorPalette(colors);
+      if (colors.length > 30) {
+        _showErrorMessage('Could not extract colors. Please try another image.');
+      } else {
+        _showColorPalette(colors);
+      }
     } else {
-      print('Failed to upload image. Status code: ${response.statusCode}');
+      _showErrorMessage('Failed to upload image. Status code: ${response.statusCode}');
     }
   }
 
-  //display the extracted color palette, add cap later
   void _showColorPalette(List<String> colors) {
     List<Color> parsedColors = colors.map((color) {
       return Color(int.parse(color.substring(1), radix: 16) + 0xFF000000);
@@ -79,7 +106,28 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors.addAll(parsedColors);
+                  _savePalette();
                 });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -122,6 +170,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors[index] = pickedColor;
+                  _savePalette();
                 });
               },
             ),
@@ -131,6 +180,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors.removeAt(index);
+                  _savePalette();
                 });
               },
               style: ElevatedButton.styleFrom(
@@ -183,6 +233,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   _paletteColors.add(pickedColor);
+                  _savePalette();
                 });
               },
             ),
@@ -196,7 +247,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Palette'),
+        title: Text('Your Palette'),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -216,7 +267,7 @@ class _UserPalettePageState extends State<UserPalettePage> {
                 onPressed: _pickAndUploadImage,
               ),
               const SizedBox(height: 20),
-              Text('User Palette:'),
+              Text('Your Palette:'),
               const SizedBox(height: 10),
               _buildPalette(),
             ],
