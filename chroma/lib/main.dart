@@ -5,10 +5,6 @@ import 'take_photo.dart';
 import 'user_palette.dart';
 import 'dart:async';
 
-const IconData add_a_photo = IconData(0xe048, fontFamily: 'MaterialIcons');
-const IconData add_photo_alternate = IconData(0xe057, fontFamily: 'MaterialIcons');
-const IconData palette = IconData(0xe46b, fontFamily: 'MaterialIcons');
-
 void main() {
   runApp(const ChromaApp());
 }
@@ -22,6 +18,11 @@ class ChromaApp extends StatelessWidget {
       title: 'Chroma',
       theme: ThemeData(
         primarySwatch: Colors.red,
+        textTheme: Theme.of(context).textTheme.apply(
+          fontFamily: 'Poppins',
+          bodyColor: Color(0xFF6772AB),
+          displayColor: Color(0xFF6772AB),
+        ),
       ),
       home: const LandingPage(),
     );
@@ -51,7 +52,6 @@ class _LandingPageState extends State<LandingPage> {
       Color.fromARGB(255, 130, 161, 196),
       const Color(0xFFD2BBE2),
       Color.fromARGB(255, 204, 163, 186),
-      
     ];
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
@@ -66,7 +66,7 @@ class _LandingPageState extends State<LandingPage> {
     super.dispose();
   }
 
-// method for picking image from device gallery
+  // method for picking image from device gallery
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -107,7 +107,7 @@ class _LandingPageState extends State<LandingPage> {
               ),
               const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children:  [
+                children: [
                   Text(
                     'Your Personal',
                     textAlign: TextAlign.center,
@@ -130,26 +130,30 @@ class _LandingPageState extends State<LandingPage> {
               ),
               const SizedBox(height: 40),
               CustomButton(
-                  text: 'Take a Reference Photo',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const TakePhotoPage()),
-                    );
-                  }),
-              CustomButton(
-                text: 'Upload a Reference Photo',
-                onPressed: _pickImage,
-              ),
-              CustomButton(
-                text: 'Add Your Colours',
+                icon: Icons.palette,
+                text: 'Add or Edit Your Colours',
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => UserPalettePage(),
                     ),
+                  );
+                },
+              ),
+              CustomButton(
+                icon: Icons.add_photo_alternate,
+                text: 'Upload a Reference Photo',
+                onPressed: _pickImage,
+              ),
+              CustomButton(
+                icon: Icons.add_a_photo,
+                text: 'Take a Reference Photo',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TakePhotoPage()),
                   );
                 },
               ),
@@ -164,14 +168,20 @@ class _LandingPageState extends State<LandingPage> {
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
+  final IconData icon;
 
-  // widget identification
-  const CustomButton({super.key, required this.text, this.onPressed});
+  const CustomButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 30.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6772AB),
@@ -181,13 +191,27 @@ class CustomButton extends StatelessWidget {
           ),
         ),
         onPressed: onPressed,
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.white,
-            fontFamily: 'Poppins',
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start, // Align icon and text to start
+          children: [
+            const SizedBox(width: 15),
+            Icon(
+              icon,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w200,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
