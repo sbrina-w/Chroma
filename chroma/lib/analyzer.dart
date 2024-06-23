@@ -225,7 +225,7 @@ void _addNewColor() {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('Prominent Colours:',
-                  style: TextStyle(fontSize: 20)),
+                  style: TextStyle(fontSize: 16)),
                   IconButton(
                     icon: Icon(Icons.info_outline),
                     onPressed: () {
@@ -238,7 +238,7 @@ void _addNewColor() {
               _buildPalette(),
               const SizedBox(height: 40),
               Text('Your Colour Palette:',
-              style: TextStyle(fontSize: 20)),
+              style: TextStyle(fontSize: 16)),
               const SizedBox(height: 10),
               _buildUserPalette(),
               const SizedBox(height: 60),
@@ -303,17 +303,18 @@ Widget _buildPalette() {
 
 
 
-  Widget _buildUserPalette() {
-    return _userPaletteColors.isNotEmpty
-        ? Wrap(
+Widget _buildUserPalette() {
+  return _userPaletteColors.isNotEmpty
+      ? Center(
+          child: Wrap(
+            alignment: WrapAlignment.center,
             spacing: 8.0,
             runSpacing: 8.0,
             children: List.generate(_userPaletteColors.length, (index) {
               return Column(
                 children: [
                   GestureDetector(
-                    onTap: () {
-                    },
+                    onTap: () {},
                     child: Container(
                       width: 50,
                       height: 50,
@@ -335,38 +336,39 @@ Widget _buildPalette() {
                 ],
               );
             }),
-          )
-        : Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: Text(
-                  'You have not added any colours yet',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey,
+          ),
+        )
+      : Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'You have not added any colours yet',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserPalettePage(),
                   ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserPalettePage(),
-                    ),
-                  );
-                  if (result != null) {
-                    _loadPaletteColors();
-                    _buildUserPalette();
-                  }
-                },
-                child: Text('Add Color Palette'),
-              ),
-            ],
-          );
-  }
+                );
+                if (result != null) {
+                  _loadPaletteColors();
+                  _buildUserPalette();
+                }
+              },
+              child: Text('Add Color Palette'),
+            ),
+          ],
+        );
+}
+
+
 
   void _handleTapColor(int index) async {
     setState(() {
@@ -412,21 +414,23 @@ void _showInfoDialog() {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return SimpleDialog(
-        contentPadding: EdgeInsets.fromLTRB(16, 24, 16, 16),
-        children: <Widget>[
-          Text('Long press a color to edit it.'),
-          SizedBox(height: 10),
-          Text('Tap a color to get colour mixing ratios.'),
-          SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+      return AlertDialog(
+        title: Text('About'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text('Long press a colour to edit it.'),
+            SizedBox(height: 10),
+            Text('Tap a color to get colour mixing ratios.'),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
         ],
       );

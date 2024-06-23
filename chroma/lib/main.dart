@@ -17,11 +17,20 @@ class ChromaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chroma',
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primaryColor: const Color(0xFF6772AB),
+        appBarTheme: AppBarTheme(
+          backgroundColor: const Color(0xFF6772AB),
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w200,
+          ),
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
         textTheme: Theme.of(context).textTheme.apply(
           fontFamily: 'Poppins',
-          bodyColor: Color(0xFF6772AB),
-          displayColor: Color(0xFF6772AB),
+          bodyColor: const Color(0xFF6772AB),
+          displayColor: const Color(0xFF6772AB),
         ),
       ),
       home: const LandingPage(),
