@@ -4,7 +4,7 @@ import 'dart:io';
 import 'analyzer.dart';
 
 class TakePhotoPage extends StatefulWidget {
-  const TakePhotoPage({Key? key}) : super(key: key);
+  const TakePhotoPage({super.key});
 
   @override
   _TakePhotoPageState createState() => _TakePhotoPageState();
@@ -41,7 +41,7 @@ class _TakePhotoPageState extends State<TakePhotoPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Preview Photo'),
+          title: const Text('Preview Photo'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -57,7 +57,7 @@ class _TakePhotoPageState extends State<TakePhotoPage> {
                         if (mounted) setState(() {});
                       });
                     },
-                    child: Text('Retake'),
+                    child: const Text('Retake'),
                   ),
                   ElevatedButton(
                     onPressed: () {
@@ -65,11 +65,12 @@ class _TakePhotoPageState extends State<TakePhotoPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AnalyzerPage(imagePath: photo.path),
+                          builder: (context) =>
+                              AnalyzerPage(imagePath: photo.path),
                         ),
                       );
                     },
-                    child: Text('Confirm'),
+                    child: const Text('Confirm'),
                   ),
                 ],
               ),

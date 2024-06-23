@@ -1,9 +1,11 @@
+#our backend is deployed with aws so there is no need to run this locally, code is just here for reference
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 import os
 import cv2
 import numpy as np
 import logging
+from scipy.optimize import minimize
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -66,6 +68,42 @@ def upload_file():
         logger.info('Filename: %s', file.filename)
         colors = extract_colors(filepath)
         return jsonify({'colors': colors})
+
+#used idea from https://math.stackexchange.com/questions/4335003/how-to-calculate-a-physical-ratio-of-colors-to-achieve-a-target-color
+@app.route('/calculatemix', methods=['POST'])
+def calculate_mix():
+    data = request.json
+    if not data or 'available_hex_colors' not in data or 'target_hex_color' not in data:
+        return jsonify({'error': 'Invalid input'}), 400
+    available_hex_colors = data['available_hex_colors']
+    target_hex_color = data['target_hex_color']
+    # convert to RGB
+    available_rgb_colors = np.array([np.array([int(hex_color[i:i+2], 16) for i in (1, 3, 5)]) for hex_color in available_hex_colors])
+    target_rgb_color = np.array([int(target_hex_color[i:i+2], 16) for i in (1, 3, 5)])
+    def objective_function(ratios):
+        mixed_color_rgb = np.sum(ratios[:, np.newaxis] * available_rgb_colors, axis=0)
+        return np.linalg.norm(mixed_color_rgb - target_rgb_color)
+    constraints = [
+        {'type': 'ineq', 'fun': lambda ratios: ratios},
+        {'type': 'eq', 'fun': lambda ratios: np.sum(ratios) - 1}
+    ]
+    initial_guess = np.ones(len(available_rgb_colors)) / len(available_rgb_colors)
+    bounds = [(0, 1) for _ in range(len(available_rgb_colors))]
+    result = minimize(objective_function, initial_guess, bounds=bounds, constraints=constraints)
+    optimal_ratios = result.x
+    # calculate the color obtained by mixing with optimal ratios
+    optimal_mixed_color_rgb = np.sum(optimal_ratios[:, np.newaxis] * available_rgb_colors, axis=0)
+    total_ratio = np.sum(optimal_ratios)
+    output = {
+        "optimal_mixing_ratios": [
+            {"hex_color": hex_code, "ratio": round((ratio / total_ratio) * 100)}
+            for ratio, hex_code in zip(optimal_ratios, available_hex_colors)
+        ],
+        "optimal_mixed_color_rgb": optimal_mixed_color_rgb.tolist(),
+        "target_color_rgb": target_rgb_color.tolist(),
+        "difference_l2_norm": np.linalg.norm(optimal_mixed_color_rgb - target_rgb_color)
+    }
+    return jsonify(output)
 
 if __name__ == '__main__':
     app.run(debug=True)

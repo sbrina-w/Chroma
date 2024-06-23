@@ -12,7 +12,7 @@ import 'user_palette.dart';
 class AnalyzerPage extends StatefulWidget {
   final String imagePath;
 
-  AnalyzerPage({required this.imagePath});
+  const AnalyzerPage({super.key, required this.imagePath});
 
   @override
   _AnalyzerPageState createState() => _AnalyzerPageState();
@@ -38,7 +38,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
     final PaletteGenerator paletteGenerator =
         await PaletteGenerator.fromImageProvider(
       FileImage(imageFile),
-      size: Size(200, 200),
+      size: const Size(200, 200),
       maximumColorCount: 30,
     );
 
@@ -137,7 +137,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('Delete', style: TextStyle(fontFamily: 'Poppins')),
+              child:
+                  const Text('Delete', style: TextStyle(fontFamily: 'Poppins')),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -155,7 +156,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
               ),
             ),
             ElevatedButton(
-              child: Text('OK', style: TextStyle(fontFamily: 'Poppins')),
+              child: const Text('OK', style: TextStyle(fontFamily: 'Poppins')),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -197,7 +198,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('OK', style: TextStyle(fontFamily: 'Poppins')),
+              child: const Text('OK', style: TextStyle(fontFamily: 'Poppins')),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -215,7 +216,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Calculate Colour Mix'),
+        title: const Text('Calculate Colour Mix'),
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -224,14 +225,15 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
             children: [
               widget.imagePath.isNotEmpty
                   ? Image.file(File(widget.imagePath))
-                  : Text('No image selected.'),
+                  : const Text('No image selected.'),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Prominent Colours:', style: TextStyle(fontSize: 16)),
+                  const Text('Prominent Colours:',
+                      style: TextStyle(fontSize: 16)),
                   IconButton(
-                    icon: Icon(Icons.info_outline),
+                    icon: const Icon(Icons.info_outline),
                     onPressed: () {
                       _showInfoDialog();
                     },
@@ -241,7 +243,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
               const SizedBox(height: 10),
               _buildPalette(),
               const SizedBox(height: 40),
-              Text('Your Colour Palette:', style: TextStyle(fontSize: 16)),
+              const Text('Your Colour Palette:',
+                  style: TextStyle(fontSize: 16)),
               const SizedBox(height: 10),
               _buildUserPalette(),
               const SizedBox(height: 40),
@@ -259,7 +262,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
   Widget _buildOptimalMixedColor() {
     return Column(
       children: [
-        Text(
+        const Text(
           'Optimal Mixed Color:',
           style: TextStyle(fontSize: 16),
         ),
@@ -277,7 +280,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
               Flexible(
                 child: Container(
                   width: 150,
-                  child: Text(
+                  child: const Text(
                     'Please note that some colours cannot be made from the current colours in your palette. This is a simulated result of the mixed result.',
                     textAlign: TextAlign.left,
                     style: TextStyle(
@@ -295,7 +298,6 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
     );
   }
 
-
   Widget _buildPalette() {
     return _paletteColors.isNotEmpty
         ? Wrap(
@@ -312,7 +314,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
                   onTap: () => _handleTapColor(index),
                   onLongPress: () => _editColor(index),
                   child: AnimatedContainer(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     width: circleSize,
                     height: circleSize,
                     margin: EdgeInsets.only(top: topMargin, left: 4, right: 4),
@@ -322,7 +324,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
                       color: _paletteColors[index],
                     ),
                     child: isSelected
-                        ? Icon(Icons.check, color: Colors.white, size: 20.0)
+                        ? const Icon(Icons.check,
+                            color: Colors.white, size: 20.0)
                         : null, // show checkmark only if selected
                   ),
                 );
@@ -336,16 +339,16 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
                       shape: BoxShape.circle,
                       color: Colors.grey[300],
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Icon(Icons.add, color: Colors.black),
                     ),
-                    margin: EdgeInsets.symmetric(horizontal: 4),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
                   ),
                 );
               }
             }),
           )
-        : CircularProgressIndicator();
+        : const CircularProgressIndicator();
   }
 
   Widget _buildUserPalette() {
@@ -374,7 +377,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
                         index < _mixingRatios.length)
                       Text(
                         '${(_mixingRatios[index]).toStringAsFixed(0)}%',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
@@ -387,7 +390,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
         : Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'You have not added any colours yet',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -400,7 +403,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => UserPalettePage(),
+                      builder: (context) => const UserPalettePage(),
                     ),
                   );
                   if (result != null) {
@@ -408,7 +411,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
                     _buildUserPalette();
                   }
                 },
-                child: Text('Add Color Palette'),
+                child: const Text('Add Color Palette'),
               ),
             ],
           );
@@ -433,7 +436,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
       // target color to find mixing ratios
     };
 
-    final url = 'http://54.84.5.214/calculatemix';
+    const url = 'http://54.84.5.214/calculatemix';
     final response = await http.post(
       Uri.parse(url),
       headers: {"Content-Type": "application/json"},
@@ -471,8 +474,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('About'),
-          content: Column(
+          title: const Text('About'),
+          content: const Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -483,7 +486,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
