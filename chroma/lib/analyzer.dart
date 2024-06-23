@@ -1,8 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+
 import 'user_palette.dart';
 
 class AnalyzerPage extends StatefulWidget {
@@ -17,6 +21,7 @@ class AnalyzerPage extends StatefulWidget {
 class _AnalyzerPageState extends State<AnalyzerPage> {
   List<Color> _paletteColors = [];
   List<Color> _userPaletteColors = [];
+  List<double> _mixingRatios = [];
 
   @override
   void initState() {
@@ -42,14 +47,14 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
   }
 
   Future<void> _loadPaletteColors() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final List<String>? colorStrings = prefs.getStringList('paletteColors');
-  if (colorStrings != null) {
-    setState(() {
-      _userPaletteColors = colorStrings.map((color) => Color(int.parse(color))).toList();
-    });
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String>? colorStrings = prefs.getStringList('paletteColors');
+    if (colorStrings != null) {
+      setState(() {
+        _userPaletteColors = colorStrings.map((color) => Color(int.parse(color))).toList();
+      });
+    }
   }
-}
 
   List<Color> _filterColors(PaletteGenerator paletteGenerator) {
     List<Color> colors = [];
@@ -98,7 +103,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
     return (rDiff + gDiff + bDiff) / 3.0;
   }
 
-  void _changeColor(int index) {
+  void _editColor(int index) {
     Color currentColor = _paletteColors[index];
 
     showDialog(
@@ -234,7 +239,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
             children: List.generate(_paletteColors.length + 1, (index) {
               if (index < _paletteColors.length) {
                 return GestureDetector(
-                  onTap: () => _changeColor(index),
+                  onTap: () => _handleTapColor(index),
+                  onLongPress: () => _editColor(index),
                   child: Container(
                     width: 50,
                     height: 50,
@@ -262,45 +268,107 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
   }
 
   Widget _buildUserPalette() {
-  return _userPaletteColors.isNotEmpty
-      ? SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: _userPaletteColors.map((color) {
-              return Container(
-                width: 50,
-                height: 50,
-                color: color,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-              );
-            }).toList(),
-          ),
-        )
-      : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(
-              child: Text(
-                'You have not added any palettes yet',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
+    return _userPaletteColors.isNotEmpty
+        ? SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(_userPaletteColors.length, (index) {
+                return Column(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      color: _userPaletteColors[index],
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                    ),
+                    if (_mixingRatios.isNotEmpty && index < _mixingRatios.length)
+                      Text(
+                        '${(_mixingRatios[index] * 100).toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.black,
+                        ),
+                      ),
+                  ],
+                );
+              }),
+            ),
+          )
+        : Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: Text(
+                  'You have not added any palettes yet',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UserPalettePage(),
-                  ),
-                );
-              },
-              child: Text('Add Color Palette'),
-            ),
-          ],
-        );
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserPalettePage(),
+                    ),
+                  );
+                },
+                child: Text('Add Color Palette'),
+              ),
+            ],
+          );
+  }
+
+  void _handleTapColor(int index) async {
+    // Prepare data to send to the Flask server
+    List<String> prominentHexColors = _paletteColors.map((color) {
+      return '#${color.value.toRadixString(16).substring(2)}'; // Convert Color to hex string
+    }).toList();
+
+    List<String> userPaletteHexColors = _userPaletteColors.map((color) {
+      return '#${color.value.toRadixString(16).substring(2)}'; // Convert Color to hex string
+    }).toList();
+
+    // Construct JSON payload
+    Map<String, dynamic> payload = {
+      'available_hex_colors': userPaletteHexColors,
+      'target_hex_color': prominentHexColors[index], // target color to find mixing ratios
+    };
+
+    // Send POST request to Flask server
+    final url = 'http://54.84.5.214/calculatemix';
+    final response = await http.post(Uri.parse(url),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(payload));
+
+    if (response.statusCode == 200) {
+      // Parse the response
+      Map<String, dynamic> data = json.decode(response.body);
+
+      // Extract and display the mixing ratios
+      List<dynamic> mixingRatios = data['optimal_mixing_ratios'];
+
+      setState(() {
+        _mixingRatios = mixingRatios.map((ratio) {
+          if (ratio is num) {
+            return ratio.toDouble();
+          } else {
+            return 0.0;
+          }
+        }).toList();
+      });
+
+      // Display the percentages or do further processing as needed
+      // For example, update UI to show percentages or ratios
+      // You can handle this based on your UI design requirements
+      print('Mixing Ratios: $mixingRatios');
+      print(mixingRatios[0]['ratio']);
+    } else {
+      // Handle error response from server
+      print('Error: ${response.statusCode}');
+    }
   }
 }
