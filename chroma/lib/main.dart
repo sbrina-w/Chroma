@@ -92,7 +92,7 @@ class _LandingPageState extends State<LandingPage> {
                 onPressed: _pickImage,
               ),
               CustomButton(
-                text: 'Add Your Colours',
+                text: 'Add or Edit Your Colours',
                 onPressed: () {
                     Navigator.push(
                         context,
