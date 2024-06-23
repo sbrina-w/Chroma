@@ -23,6 +23,7 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
   List<Color> _userPaletteColors = [];
   List<int> _mixingRatios = [];
   int _selectedColorIndex = -1;
+  Color? _optimalMixedColor;
 
   @override
   void initState() {
@@ -34,7 +35,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
   Future<void> _extractPalette() async {
     final File imageFile = File(widget.imagePath);
 
-    final PaletteGenerator paletteGenerator = await PaletteGenerator.fromImageProvider(
+    final PaletteGenerator paletteGenerator =
+        await PaletteGenerator.fromImageProvider(
       FileImage(imageFile),
       size: Size(200, 200),
       maximumColorCount: 30,
@@ -52,7 +54,8 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
     final List<String>? colorStrings = prefs.getStringList('paletteColors');
     if (colorStrings != null) {
       setState(() {
-        _userPaletteColors = colorStrings.map((color) => Color(int.parse(color))).toList();
+        _userPaletteColors =
+            colorStrings.map((color) => Color(int.parse(color))).toList();
       });
     }
   }
@@ -104,107 +107,109 @@ class _AnalyzerPageState extends State<AnalyzerPage> {
     return (rDiff + gDiff + bDiff) / 3.0;
   }
 
-void _editColor(int index) {
-  Color currentColor = _paletteColors[index];
+  void _editColor(int index) {
+    Color currentColor = _paletteColors[index];
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      Color pickedColor = currentColor;
-      return AlertDialog(
-        title: const Text('Select Color', style: TextStyle(fontFamily: 'Poppins')),
-        content: SingleChildScrollView(
-          child: ColorPicker(
-            pickerColor: currentColor,
-            onColorChanged: (Color color) {
-              pickedColor = color;
-            },
-            colorPickerWidth: 300.0,
-            pickerAreaHeightPercent: 0.7,
-            enableAlpha: true,
-            displayThumbColor: true,
-            showLabel: true,
-            paletteType: PaletteType.hsv,
-            pickerAreaBorderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(2.0),
-              topRight: Radius.circular(2.0),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Color pickedColor = currentColor;
+        return AlertDialog(
+          title: const Text('Select Color',
+              style: TextStyle(fontFamily: 'Poppins')),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: currentColor,
+              onColorChanged: (Color color) {
+                pickedColor = color;
+              },
+              colorPickerWidth: 300.0,
+              pickerAreaHeightPercent: 0.7,
+              enableAlpha: true,
+              displayThumbColor: true,
+              showLabel: true,
+              paletteType: PaletteType.hsv,
+              pickerAreaBorderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(2.0),
+                topRight: Radius.circular(2.0),
+              ),
             ),
           ),
-        ),
-        actions: <Widget>[
-          ElevatedButton(
-            child: Text('Delete', style: TextStyle(fontFamily: 'Poppins')),
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                _paletteColors.removeAt(index);
-                if (_selectedColorIndex == index) {
-                  _selectedColorIndex = -1;
-                } else if (_selectedColorIndex > index) {
-                  _selectedColorIndex--;
-                }
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('Delete', style: TextStyle(fontFamily: 'Poppins')),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _paletteColors.removeAt(index);
+                  if (_selectedColorIndex == index) {
+                    _selectedColorIndex = -1;
+                  } else if (_selectedColorIndex > index) {
+                    _selectedColorIndex--;
+                  }
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
             ),
-          ),
-          ElevatedButton(
-            child: Text('OK', style: TextStyle(fontFamily: 'Poppins')),
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                _paletteColors[index] = pickedColor;
-              });
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+            ElevatedButton(
+              child: Text('OK', style: TextStyle(fontFamily: 'Poppins')),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _paletteColors[index] = pickedColor;
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-void _addNewColor() {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      Color pickedColor = Colors.white;
-      return AlertDialog(
-        title: const Text('Select New Color', style: TextStyle(fontFamily: 'Poppins')),
-        content: SingleChildScrollView(
-          child: ColorPicker(
-            pickerColor: pickedColor,
-            onColorChanged: (Color color) {
-              pickedColor = color;
-            },
-            colorPickerWidth: 300.0,
-            pickerAreaHeightPercent: 0.7,
-            enableAlpha: true,
-            displayThumbColor: true,
-            showLabel: true,
-            paletteType: PaletteType.hsv,
-            pickerAreaBorderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(2.0),
-              topRight: Radius.circular(2.0),
+  void _addNewColor() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Color pickedColor = Colors.white;
+        return AlertDialog(
+          title: const Text('Select New Color',
+              style: TextStyle(fontFamily: 'Poppins')),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickedColor,
+              onColorChanged: (Color color) {
+                pickedColor = color;
+              },
+              colorPickerWidth: 300.0,
+              pickerAreaHeightPercent: 0.7,
+              enableAlpha: true,
+              displayThumbColor: true,
+              showLabel: true,
+              paletteType: PaletteType.hsv,
+              pickerAreaBorderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(2.0),
+                topRight: Radius.circular(2.0),
+              ),
             ),
           ),
-        ),
-        actions: <Widget>[
-          ElevatedButton(
-            child: Text('OK', style: TextStyle(fontFamily: 'Poppins')),
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                _paletteColors.add(pickedColor);
-              });
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('OK', style: TextStyle(fontFamily: 'Poppins')),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _paletteColors.add(pickedColor);
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -224,8 +229,7 @@ void _addNewColor() {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Prominent Colours:',
-                  style: TextStyle(fontSize: 16)),
+                  Text('Prominent Colours:', style: TextStyle(fontSize: 16)),
                   IconButton(
                     icon: Icon(Icons.info_outline),
                     onPressed: () {
@@ -237,10 +241,13 @@ void _addNewColor() {
               const SizedBox(height: 10),
               _buildPalette(),
               const SizedBox(height: 40),
-              Text('Your Colour Palette:',
-              style: TextStyle(fontSize: 16)),
+              Text('Your Colour Palette:', style: TextStyle(fontSize: 16)),
               const SizedBox(height: 10),
               _buildUserPalette(),
+              const SizedBox(height: 40),
+              _optimalMixedColor != null
+                  ? _buildOptimalMixedColor()
+                  : Container(),
               const SizedBox(height: 60),
             ],
           ),
@@ -249,126 +256,163 @@ void _addNewColor() {
     );
   }
 
-Widget _buildPalette() {
-  return _paletteColors.isNotEmpty
-      ? Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8.0,
-          runSpacing: 8.0,
-          children: List.generate(_paletteColors.length + 1, (index) {
-            if (index < _paletteColors.length) {
-              bool isSelected = index == _selectedColorIndex;
-              double circleSize = isSelected ? 40.0 : 50.0;
-              double topMargin = isSelected ? 5.0 : 0.0;
-
-              return GestureDetector(
-                onTap: () => _handleTapColor(index),
-                onLongPress: () => _editColor(index),
-                child: AnimatedContainer(
-                  duration: Duration(milliseconds: 300),
-                  width: circleSize,
-                  height: circleSize,
-                  margin: EdgeInsets.only(top: topMargin, left: 4, right: 4),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _paletteColors[index],
-                  ),
-                  child: isSelected
-                      ? Icon(Icons.check, color: Colors.white, size: 20.0)
-                      : null, // show checkmark only if selected
-                ),
-              );
-            } else {
-              return GestureDetector(
-                onTap: _addNewColor,
+  Widget _buildOptimalMixedColor() {
+    return Column(
+      children: [
+        Text(
+          'Optimal Mixed Color:',
+          style: TextStyle(fontSize: 16),
+        ),
+        const SizedBox(height: 10),
+        Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                color: _optimalMixedColor,
+              ),
+              const SizedBox(width: 20),
+              Flexible(
                 child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey[300],
+                  width: 150,
+                  child: Text(
+                    'Please note that some colours cannot be made from the current colours in your palette. This is a simulated result of the mixed result.',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
                   ),
-                  child: Center(
-                    child: Icon(Icons.add, color: Colors.black),
-                  ),
-                  margin: EdgeInsets.symmetric(horizontal: 4),
                 ),
-              );
-            }
-          }),
-        )
-      : CircularProgressIndicator();
-}
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
 
-
-Widget _buildUserPalette() {
-  return _userPaletteColors.isNotEmpty
-      ? Center(
-          child: Wrap(
+  Widget _buildPalette() {
+    return _paletteColors.isNotEmpty
+        ? Wrap(
             alignment: WrapAlignment.center,
             spacing: 8.0,
             runSpacing: 8.0,
-            children: List.generate(_userPaletteColors.length, (index) {
-              return Column(
-                children: [
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _userPaletteColors[index],
-                      ),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
+            children: List.generate(_paletteColors.length + 1, (index) {
+              if (index < _paletteColors.length) {
+                bool isSelected = index == _selectedColorIndex;
+                double circleSize = isSelected ? 40.0 : 50.0;
+                double topMargin = isSelected ? 5.0 : 0.0;
+
+                return GestureDetector(
+                  onTap: () => _handleTapColor(index),
+                  onLongPress: () => _editColor(index),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    width: circleSize,
+                    height: circleSize,
+                    margin: EdgeInsets.only(top: topMargin, left: 4, right: 4),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _paletteColors[index],
                     ),
-                  ),
-                  if (_mixingRatios.isNotEmpty && index < _mixingRatios.length)
-                    Text(
-                      '${(_mixingRatios[index]).toStringAsFixed(0)}%',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                ],
-              );
-            }),
-          ),
-        )
-      : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'You have not added any colours yet',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UserPalettePage(),
+                    child: isSelected
+                        ? Icon(Icons.check, color: Colors.white, size: 20.0)
+                        : null, // show checkmark only if selected
                   ),
                 );
-                if (result != null) {
-                  _loadPaletteColors();
-                  _buildUserPalette();
-                }
-              },
-              child: Text('Add Color Palette'),
+              } else {
+                return GestureDetector(
+                  onTap: _addNewColor,
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey[300],
+                    ),
+                    child: Center(
+                      child: Icon(Icons.add, color: Colors.black),
+                    ),
+                    margin: EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                );
+              }
+            }),
+          )
+        : CircularProgressIndicator();
+  }
+
+  Widget _buildUserPalette() {
+    return _userPaletteColors.isNotEmpty
+        ? Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: List.generate(_userPaletteColors.length, (index) {
+                return Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _userPaletteColors[index],
+                        ),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+                    ),
+                    if (_mixingRatios.isNotEmpty &&
+                        index < _mixingRatios.length)
+                      Text(
+                        '${(_mixingRatios[index]).toStringAsFixed(0)}%',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                  ],
+                );
+              }),
             ),
-          ],
-        );
-}
-
-
+          )
+        : Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'You have not added any colours yet',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserPalettePage(),
+                    ),
+                  );
+                  if (result != null) {
+                    _loadPaletteColors();
+                    _buildUserPalette();
+                  }
+                },
+                child: Text('Add Color Palette'),
+              ),
+            ],
+          );
+  }
 
   void _handleTapColor(int index) async {
     setState(() {
@@ -385,7 +429,8 @@ Widget _buildUserPalette() {
 
     Map<String, dynamic> payload = {
       'available_hex_colors': userPaletteHexColors,
-      'target_hex_color': prominentHexColors[index], // target color to find mixing ratios
+      'target_hex_color': prominentHexColors[index],
+      // target color to find mixing ratios
     };
 
     final url = 'http://54.84.5.214/calculatemix';
@@ -398,44 +443,54 @@ Widget _buildUserPalette() {
     if (response.statusCode == 200) {
       Map<String, dynamic> data = json.decode(response.body);
       List<dynamic> mixingRatios = data['optimal_mixing_ratios'];
+      List<double> optimalMixedColorRgb =
+          List<double>.from(data['optimal_mixed_color_rgb']);
 
       setState(() {
-        _mixingRatios = mixingRatios.map((ratioData) {
-          var ratio = ratioData['ratio'];
-          return ratio.toInt();
-        }).toList().cast<int>();
+        _mixingRatios = mixingRatios
+            .map((ratioData) {
+              var ratio = ratioData['ratio'];
+              return ratio.toInt();
+            })
+            .toList()
+            .cast<int>();
+        _optimalMixedColor = Color.fromARGB(
+          255,
+          optimalMixedColorRgb[0].toInt(),
+          optimalMixedColorRgb[1].toInt(),
+          optimalMixedColorRgb[2].toInt(),
+        );
       });
     } else {
       print('Error: ${response.statusCode}');
     }
   }
 
-void _showInfoDialog() {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('About'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('Long press a colour to edit it.'),
-            SizedBox(height: 10),
-            Text('Tap a color to get colour mixing ratios.'),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('OK'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+  void _showInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('About'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('Long press a colour to edit it.'),
+              SizedBox(height: 10),
+              Text('Tap a color to get colour mixing ratios.'),
+            ],
           ),
-        ],
-      );
-    },
-  );
-}
-
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
